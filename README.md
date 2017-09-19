@@ -1,1 +1,1 @@
-# MiniSQLEngine
+# Database Systems Assignments
