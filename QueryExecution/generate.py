@@ -1,55 +1,68 @@
 import random
 import sys
 import math
-class Generate:
-	def __init__(self,n_a,r):	#r- duplication, n_a = number of attributes
-		self.n_a = n_a			
-		self.r=r
-	def create_tuples(self,k):	#create k tuples
-		tuples = []
-		for i in range(k):
-			tup = ()
-			for j in range(self.n_a):
-				tup = tup+(random.randint(1,1000),)
-			tuples.append(tup)
-		return tuples
-	
-	def file_write(self,tu,file):
-		with open(file,'ab') as fp:
-			for tup in tu:
-				s=''
-				for k in tup:
-					s=str(k)+','+s
-				fp.write(s+'\n')
+class Generator:
+    def __init__(self,**kwargs):  
+        self.nattrs = kwargs.get('nattrs')          
+        self.duplication_rate=kwargs.get('duplication_rate')
+        self.file=kwargs.get('file')
+        self.file_size=0
+        self.file_pointer=0
+        self.ntuples=0
 
-	def limit_size(self,file):
-		file_size = 0
-		with open(file,'rb') as fp:
-			for line in fp:
-				file_size += len(line.encode('utf-8'))
-				if file_size >= pow(10,9):
-					return False
-		return True
 
-	def random_generate(self,tu,rd):
-		cnt=1
-		tuples=[]
-		while cnt <= rd:
-			i = random.randint(0,len(tu)-1)
-			tuples.append(tu[i])
-			cnt+=1
-		return tuples
+    def create_tuples(self,k):  
+        tuples = []
+        for i in range(k):
+            _tuple = ()
+            for j in range(self.nattrs):
+                _tuple = _tuple+(random.randint(1,1000),)
+            tuples.append(_tuple)
+        return tuples
+    
+    def file_write(self,tuples):
+        with open(self.file,'ab') as fp:
+            for _tuple in tuples:
+                s=''
+                for k in _tuple:
+                    s=str(k)+','+s
+                fp.write(s+'\n')
 
-	def generate(self,file):
-		tupss = self.create_tuples(100)
-		self.file_write(tupss,file)
-		cnt=1
-		while self.limit_size(file):
-			tupss = self.random_generate(tupss,self.r)+self.create_tuples(100-self.r)
-			# tuples.append(tupss)
-			self.file_write(tupss,file)
-			if cnt%500==0:
-				print cnt
-			cnt+=1
-g=Generate(3,10)
-g.generate('file.txt')
+    def limit_size(self):
+        with open(self.file,'rb') as fp:
+            fp.seek(self.file_pointer)
+            for line in fp:
+                self.file_size+=len(line.encode('utf-8'))
+                if self.file_size>=pow(10,9):
+                    return False
+            self.file_pointer=fp.tell()
+        return True
+
+    def random_generate(self,prev_tuples,k):
+        count=1
+        tuples=[]
+        while count <= k:
+            i = random.randint(0,len(prev_tuples)-1)
+            tuples.append(prev_tuples[i])
+            count+=1
+        return tuples
+
+    def generate(self):
+        tupss = self.create_tuples(100)
+        self.file_write(tupss)
+        self.ntuples=100
+        count=1
+        while self.limit_size():
+            tupss = self.random_generate(tupss,self.duplication_rate)+\
+            self.create_tuples(100-self.duplication_rate)
+            # tuples.append(tupss)
+            self.file_write(tupss)
+            self.ntuples+=100
+            if count%500==0:
+                print count
+            count+=1
+        print "Total number of Records"
+        print self.ntuples
+g=Generator(nattrs = 3,duplication_rate = 10,file = 'file.txt')
+g.generate()
+    
