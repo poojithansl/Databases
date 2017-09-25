@@ -10,6 +10,7 @@ class HashTable(IndexStructure):
         #self.record = kwargs.get('record')
         self.kwargs = kwargs
         self.mapping = {}
+        self.bucket_num = 1
 
     def _hash(self, record):
         hash_value = sum(record)
@@ -25,12 +26,23 @@ class HashTable(IndexStructure):
 
     def add(self, record):
         hv = self._hash(record)
-        bucket = self.mapping(hv)
-        bucket.add(record)
-        pass
+        if hv not in self.mapping.keys():
+            self.mapping[hv] = self.bucket_num
+            bucket.add(record,self.bucket_num)
+            self.bucket_num += 1
+        else:
+            bucket_num = self.mapping[hv]
+            bucket.add(record,bucket_num)
+       
 
     def __contains__(self, record):
-        pass
+        hv = self._hash(record)
+        if hv not in self.mapping:
+            return False
+        else:
+            bucket_num = self.mapping[hv]
+            return bucket.check(record,bucket_num)
+        
     
 
 
