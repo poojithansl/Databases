@@ -4,43 +4,43 @@ from collections import defaultdict
 from utils import line2record, record2line
 from iterator import Iterator
 class Bucket:
-    def __init__(**kwargs):
+    
+    def __init__(self, **kwargs):
         self.max_filesize = kwargs.get("Maxfile_size")
         self.bucket_files = defaultdict(list)
         self.file_num = 1
+        self.file_size = defaultdict(int)
         # self.file_names = []
 
-    def overloads(self,file_num):
-        fp = open('Files/'+str(file_num)+'.txt','r')
-        file_size = 0
-        for line in fp:
-            size, _= line2record(line)
-            file_size += size
-            if file_size > self.max_filesize:
-                fp.close()
-                return True
-        fp.close()
-        return False
 
     def write_to_file(self, record, file_num):
         if not os.path.exists('Files'):
             os.makedirs('Files')
-        if overloads(file_num):
-            self.file_num = self.file_num+1 
+        if self.file_size[file_num] <= self.max_filesize:
+            with open('Files/'+str(file_num)+'.txt', 'a') as fp:
+                record = record2line(record)
+                fp.write(record)
+                self.file_size[file_num] += len(record.encode('utf-8'))
+        else:
+            self.file_num = self.file_num+1
             self.bucket_files[bucket_num].append(self.file_num)
-            self.file_num += 1
             file_num = self.file_num
-        with open('Files/'+str(file_num)+'.txt', 'a') as fp:
-            fp.write(record+'\n')
+            
+            with open('Files/'+str(file_num)+'.txt','a') as fp:
+                record = record2line(record)
+                self.file_size[file_num] += len(record.encode('utf-8'))
+                fp.write(record)
+            self.file_num += 1
 
 
     def add(self, record, bucket_num):
         if bucket_num not in self.bucket_files:
             self.bucket_files[bucket_num].append(self.file_num)
+            self.write_to_file(record,self.file_num)
             self.file_num += 1
         else:
             file_num = self.bucket_files[bucket_num][-1]
-            write_to_file(record,file_num)
+            self.write_to_file(record,file_num)
                 
 
     def check(self, record, bucket_num):
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     kb = 2**10
     mb = kb**2
     gb = kb**3
-    bucky = Bucket(Maxfile_size = )
+    bucky = Bucket(Maxfile_size =  * mb)
     x = Iterator(storage='file.txt', block_size=300)
-    for record in x:
-        bucky.add(record)
+    for i,record in enumerate(x):
+        bucky.add(record,i%10)
 
